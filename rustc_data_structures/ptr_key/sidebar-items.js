@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["PtrKey","A wrapper around reference that compares and hashes like a pointer. Can be used as a key in sets/maps indexed by pointers to avoid `unsafe`."]]});

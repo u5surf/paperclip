@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PaperClipError","Global error which encapsulates all related errors."]],"type":[["PaperClipResult","Generic result used throughout this library."]]});

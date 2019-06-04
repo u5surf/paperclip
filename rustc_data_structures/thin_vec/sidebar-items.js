@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ThinVec","A vector type optimized for cases where this size is usually 0 (cf. `SmallVector`). The `Option<Box<..>>` wrapping allows us to represent a zero sized vector with `None`, which uses only a single (null) pointer."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SortedMap","`SortedMap` is a data structure with similar characteristics as BTreeMap but slightly different trade-offs: lookup, insertion, and removal are O(log(N)) and elements can be iterated in order cheaply."]]});

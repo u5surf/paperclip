@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SmallCStr","Like SmallVec but for C strings."]]});

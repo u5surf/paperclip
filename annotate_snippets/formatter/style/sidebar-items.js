@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["StyleClass","StyleClass is a collection of named variants of style classes that DisplayListFormatter uses."]],"trait":[["Style","This trait implements a return value for the `Stylesheet::get_style`."],["Stylesheet","Trait to annotate structs that can provide `Style` implementations for every `StyleClass` variant."]]});

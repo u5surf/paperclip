@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["AliasKind","Whether the type alias or associated type is a concrete type or an existential type"],["Error",""],["PathStyle","Specifies how to parse a path."]],"fn":[["emit_unclosed_delims",""]],"struct":[["ModulePath","Information about the path to a module."],["ModulePathSuccess",""],["Parser",""]]});

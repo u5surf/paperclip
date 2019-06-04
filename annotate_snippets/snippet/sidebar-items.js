@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["AnnotationType","Types of annotations."]],"struct":[["Annotation","An annotation for a `Snippet`."],["Slice","Structure containing the slice of text to be annotated and basic information about the location of the slice."],["Snippet","Primary structure provided for formatting"],["SourceAnnotation","An annotation for a `Slice`."]]});

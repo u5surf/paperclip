@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["AstFragment","A fragment of AST that can be produced by a single macro expansion. Can also serve as an input and intermediate result for macro expansion operations."],["AstFragmentKind","\"Discriminant\" of an AST fragment."],["InvocationKind",""]],"struct":[["ExpansionConfig",""],["Invocation",""],["MacroExpander",""],["Marker",""]]});

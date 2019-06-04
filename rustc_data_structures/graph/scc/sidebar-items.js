@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Sccs","Strongly connected components (SCC) of a graph. The type `N` is the index type for the graph nodes and `S` is the index type for the SCCs. We can map from each node to the SCC that it participates in, and we also have the successors of each SCC."]]});

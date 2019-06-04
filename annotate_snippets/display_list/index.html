@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `display_list` mod in crate `annotate_snippets`."><meta name="keywords" content="rust, rustlang, rust-lang, display_list"><title>annotate_snippets::display_list - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../annotate_snippets/index.html'><img src='../../rust-logo.png' alt='logo' width='100'></a><p class='location'>Module display_list</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../index.html'>annotate_snippets</a></p><script>window.sidebarCurrent = {name: 'display_list', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/annotate_snippets/display_list/mod.rs.html#1-124' title='goto source code'>[src]</a></span><span class='in-band'>Module <a href='../index.html'>annotate_snippets</a>::<wbr><a class="mod" href=''>display_list</a></span></h1><div class='docblock'><p>display_list module stores the output model for the snippet.</p>
+<p><code>DisplayList</code> is a central structure in the crate, which contains
+the structured list of lines to be displayed.</p>
+<p>It is made of two types of lines: <code>Source</code> and <code>Raw</code>. All <code>Source</code> lines
+are structured using four columns:</p>
+<pre><code class="language-text"> /------------ (1) Line number column.
+ |  /--------- (2) Line number column delimiter.
+ |  | /------- (3) Inline marks column.
+ |  | |   /--- (4) Content column with the source and annotations for slices.
+ |  | |   |
+=============================================================================
+error[E0308]: mismatched types
+   --&gt; src/format.rs:51:5
+    |
+151 | /   fn test() -&gt; String {
+152 | |       return &quot;test&quot;;
+153 | |   }
+    | |___^ error: expected `String`, for `&amp;str`.
+    |
+</code></pre>
+<p>The first two lines of the example above are <code>Raw</code> lines, while the rest
+are <code>Source</code> lines.</p>
+<p><code>DisplayList</code> does not store column alignment information, and those are
+only calculated by the <code>DisplayListFormatter</code> using information such as
+styling.</p>
+<p>The above snippet has been built out of the following structure:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">annotate_snippets</span>::<span class="ident">display_list</span>::<span class="kw-2">*</span>;
+
+<span class="kw">let</span> <span class="ident">dl</span> <span class="op">=</span> <span class="ident">DisplayList</span> {
+    <span class="ident">body</span>: <span class="macro">vec</span><span class="macro">!</span>[
+        <span class="ident">DisplayLine</span>::<span class="ident">Raw</span>(<span class="ident">DisplayRawLine</span>::<span class="ident">Annotation</span> {
+            <span class="ident">annotation</span>: <span class="ident">Annotation</span> {
+                <span class="ident">annotation_type</span>: <span class="ident">DisplayAnnotationType</span>::<span class="ident">Error</span>,
+                <span class="ident">id</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;E0308&quot;</span>.<span class="ident">to_string</span>()),
+                <span class="ident">label</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="ident">DisplayTextFragment</span> {
+                        <span class="ident">content</span>: <span class="string">&quot;mismatched types&quot;</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">style</span>: <span class="ident">DisplayTextStyle</span>::<span class="ident">Regular</span>,
+                    }
+                ]
+            },
+            <span class="ident">source_aligned</span>: <span class="bool-val">false</span>,
+            <span class="ident">continuation</span>: <span class="bool-val">false</span>,
+        }),
+        <span class="ident">DisplayLine</span>::<span class="ident">Raw</span>(<span class="ident">DisplayRawLine</span>::<span class="ident">Origin</span> {
+            <span class="ident">path</span>: <span class="string">&quot;src/format.rs&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">pos</span>: <span class="prelude-val">Some</span>((<span class="number">51</span>, <span class="number">5</span>)),
+            <span class="ident">header_type</span>: <span class="ident">DisplayHeaderType</span>::<span class="ident">Initial</span>,
+        }),
+        <span class="ident">DisplayLine</span>::<span class="ident">Source</span> {
+            <span class="ident">lineno</span>: <span class="prelude-val">Some</span>(<span class="number">151</span>),
+            <span class="ident">inline_marks</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">DisplayMark</span> {
+                    <span class="ident">mark_type</span>: <span class="ident">DisplayMarkType</span>::<span class="ident">AnnotationStart</span>,
+                    <span class="ident">annotation_type</span>: <span class="ident">DisplayAnnotationType</span>::<span class="ident">Error</span>,
+                }
+            ],
+            <span class="ident">line</span>: <span class="ident">DisplaySourceLine</span>::<span class="ident">Content</span> {
+                <span class="ident">text</span>: <span class="string">&quot;  fn test() -&gt; String {&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">range</span>: (<span class="number">0</span>, <span class="number">24</span>)
+            }
+        },
+        <span class="ident">DisplayLine</span>::<span class="ident">Source</span> {
+            <span class="ident">lineno</span>: <span class="prelude-val">Some</span>(<span class="number">152</span>),
+            <span class="ident">inline_marks</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">DisplayMark</span> {
+                    <span class="ident">mark_type</span>: <span class="ident">DisplayMarkType</span>::<span class="ident">AnnotationThrough</span>,
+                    <span class="ident">annotation_type</span>: <span class="ident">DisplayAnnotationType</span>::<span class="ident">Error</span>,
+                }
+            ],
+            <span class="ident">line</span>: <span class="ident">DisplaySourceLine</span>::<span class="ident">Content</span> {
+                <span class="ident">text</span>: <span class="string">&quot;      return \&quot;test\&quot;;&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">range</span>: (<span class="number">25</span>, <span class="number">46</span>)
+            }
+        },
+        <span class="ident">DisplayLine</span>::<span class="ident">Source</span> {
+            <span class="ident">lineno</span>: <span class="prelude-val">Some</span>(<span class="number">153</span>),
+            <span class="ident">inline_marks</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">DisplayMark</span> {
+                    <span class="ident">mark_type</span>: <span class="ident">DisplayMarkType</span>::<span class="ident">AnnotationThrough</span>,
+                    <span class="ident">annotation_type</span>: <span class="ident">DisplayAnnotationType</span>::<span class="ident">Error</span>,
+                }
+            ],
+            <span class="ident">line</span>: <span class="ident">DisplaySourceLine</span>::<span class="ident">Content</span> {
+                <span class="ident">text</span>: <span class="string">&quot;  }&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="ident">range</span>: (<span class="number">47</span>, <span class="number">51</span>)
+            }
+        },
+        <span class="ident">DisplayLine</span>::<span class="ident">Source</span> {
+            <span class="ident">lineno</span>: <span class="prelude-val">None</span>,
+            <span class="ident">inline_marks</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            <span class="ident">line</span>: <span class="ident">DisplaySourceLine</span>::<span class="ident">Annotation</span> {
+                <span class="ident">annotation</span>: <span class="ident">Annotation</span> {
+                    <span class="ident">annotation_type</span>: <span class="ident">DisplayAnnotationType</span>::<span class="ident">Error</span>,
+                    <span class="ident">id</span>: <span class="prelude-val">None</span>,
+                    <span class="ident">label</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">DisplayTextFragment</span> {
+                            <span class="ident">content</span>: <span class="string">&quot;expected `String`, for `&amp;str`.&quot;</span>.<span class="ident">to_string</span>(),
+                            <span class="ident">style</span>: <span class="ident">DisplayTextStyle</span>::<span class="ident">Regular</span>,
+                        }
+                    ]
+                },
+                <span class="ident">range</span>: (<span class="number">3</span>, <span class="number">4</span>),
+                <span class="ident">annotation_type</span>: <span class="ident">DisplayAnnotationType</span>::<span class="ident">Error</span>,
+                <span class="ident">annotation_part</span>: <span class="ident">DisplayAnnotationPart</span>::<span class="ident">MultilineEnd</span>,
+            }
+
+        }
+    ]
+};</pre></div>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.Annotation.html" title='annotate_snippets::display_list::Annotation struct'>Annotation</a></td><td class='docblock-short'><p>Inline annotation which can be used in either Raw or Source line.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.DisplayList.html" title='annotate_snippets::display_list::DisplayList struct'>DisplayList</a></td><td class='docblock-short'><p>List of lines to be displayed.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.DisplayMark.html" title='annotate_snippets::display_list::DisplayMark struct'>DisplayMark</a></td><td class='docblock-short'><p>A visual mark used in <code>inline_marks</code> field of the <code>DisplaySourceLine</code>.</p>
+</td></tr><tr class='module-item'><td><a class="struct" href="struct.DisplayTextFragment.html" title='annotate_snippets::display_list::DisplayTextFragment struct'>DisplayTextFragment</a></td><td class='docblock-short'><p>An inline text fragment which any label is composed of.</p>
+</td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.DisplayAnnotationPart.html" title='annotate_snippets::display_list::DisplayAnnotationPart enum'>DisplayAnnotationPart</a></td><td class='docblock-short'><p>An indicator of what part of the annotation a given <code>Annotation</code> is.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplayAnnotationType.html" title='annotate_snippets::display_list::DisplayAnnotationType enum'>DisplayAnnotationType</a></td><td class='docblock-short'><p>A type of the <code>Annotation</code> which may impact the sigils, style or text displayed.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplayHeaderType.html" title='annotate_snippets::display_list::DisplayHeaderType enum'>DisplayHeaderType</a></td><td class='docblock-short'><p>Information whether the header is the initial one or a consequitive one
+for multi-slice cases.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplayLine.html" title='annotate_snippets::display_list::DisplayLine enum'>DisplayLine</a></td><td class='docblock-short'><p>A single line used in <code>DisplayList</code>.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplayMarkType.html" title='annotate_snippets::display_list::DisplayMarkType enum'>DisplayMarkType</a></td><td class='docblock-short'><p>A type of the <code>DisplayMark</code>.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplayRawLine.html" title='annotate_snippets::display_list::DisplayRawLine enum'>DisplayRawLine</a></td><td class='docblock-short'><p>Raw line - a line which does not have the <code>lineno</code> part and is not considered
+a part of the snippet.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplaySourceLine.html" title='annotate_snippets::display_list::DisplaySourceLine enum'>DisplaySourceLine</a></td><td class='docblock-short'><p>A source line.</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.DisplayTextStyle.html" title='annotate_snippets::display_list::DisplayTextStyle enum'>DisplayTextStyle</a></td><td class='docblock-short'><p>A style for the <code>DisplayTextFragment</code> which can be visually formatted.</p>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "annotate_snippets";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

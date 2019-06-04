@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["ALL_EDITIONS",""],["DEFAULT_EDITION",""],["EDITION_NAME_LIST",""]],"enum":[["Edition","The edition of the compiler (RFC 2052)"]]});

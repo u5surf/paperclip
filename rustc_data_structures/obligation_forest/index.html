@@ -1,0 +1,83 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `obligation_forest` mod in crate `rustc_data_structures`."><meta name="keywords" content="rust, rustlang, rust-lang, obligation_forest"><title>rustc_data_structures::obligation_forest - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="../../favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rustc_data_structures/index.html'><img src='../../rust-logo.png' alt='logo' width='100'></a><p class='location'>Module obligation_forest</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'><a href='../index.html'>rustc_data_structures</a></p><script>window.sidebarCurrent = {name: 'obligation_forest', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/rustc_data_structures/obligation_forest/mod.rs.html#1-749' title='goto source code'>[src]</a></span><span class='in-band'>Module <a href='../index.html'>rustc_data_structures</a>::<wbr><a class="mod" href=''>obligation_forest</a></span></h1><div class='docblock'><p>The <code>ObligationForest</code> is a utility data structure used in trait
+matching to track the set of outstanding obligations (those not yet
+resolved to success or error). It also tracks the &quot;backtrace&quot; of each
+pending obligation (why we are trying to figure this out in the first
+place).</p>
+<h3 id="external-view" class="section-header"><a href="#external-view">External view</a></h3>
+<p><code>ObligationForest</code> supports two main public operations (there are a
+few others not discussed here):</p>
+<ol>
+<li>Add a new root obligations (<code>push_tree</code>).</li>
+<li>Process the pending obligations (<code>process_obligations</code>).</li>
+</ol>
+<p>When a new obligation <code>N</code> is added, it becomes the root of an
+obligation tree. This tree can also carry some per-tree state <code>T</code>,
+which is given at the same time. This tree is a singleton to start, so
+<code>N</code> is both the root and the only leaf. Each time the
+<code>process_obligations</code> method is called, it will invoke its callback
+with every pending obligation (so that will include <code>N</code>, the first
+time). The callback also receives a (mutable) reference to the
+per-tree state <code>T</code>. The callback should process the obligation <code>O</code>
+that it is given and return one of three results:</p>
+<ul>
+<li><code>Ok(None)</code> -&gt; ambiguous result. Obligation was neither a success
+nor a failure. It is assumed that further attempts to process the
+obligation will yield the same result unless something in the
+surrounding environment changes.</li>
+<li><code>Ok(Some(C))</code> - the obligation was <em>shallowly successful</em>. The
+vector <code>C</code> is a list of subobligations. The meaning of this is that
+<code>O</code> was successful on the assumption that all the obligations in <code>C</code>
+are also successful. Therefore, <code>O</code> is only considered a &quot;true&quot;
+success if <code>C</code> is empty. Otherwise, <code>O</code> is put into a suspended
+state and the obligations in <code>C</code> become the new pending
+obligations. They will be processed the next time you call
+<code>process_obligations</code>.</li>
+<li><code>Err(E)</code> -&gt; obligation failed with error <code>E</code>. We will collect this
+error and return it from <code>process_obligations</code>, along with the
+&quot;backtrace&quot; of obligations (that is, the list of obligations up to
+and including the root of the failed obligation). No further
+obligations from that same tree will be processed, since the tree is
+now considered to be in error.</li>
+</ul>
+<p>When the call to <code>process_obligations</code> completes, you get back an <code>Outcome</code>,
+which includes three bits of information:</p>
+<ul>
+<li><code>completed</code>: a list of obligations where processing was fully
+completed without error (meaning that all transitive subobligations
+have also been completed). So, for example, if the callback from
+<code>process_obligations</code> returns <code>Ok(Some(C))</code> for some obligation <code>O</code>,
+then <code>O</code> will be considered completed right away if <code>C</code> is the
+empty vector. Otherwise it will only be considered completed once
+all the obligations in <code>C</code> have been found completed.</li>
+<li><code>errors</code>: a list of errors that occurred and associated backtraces
+at the time of error, which can be used to give context to the user.</li>
+<li><code>stalled</code>: if true, then none of the existing obligations were
+<em>shallowly successful</em> (that is, no callback returned <code>Ok(Some(_))</code>).
+This implies that all obligations were either errors or returned an
+ambiguous result, which means that any further calls to
+<code>process_obligations</code> would simply yield back further ambiguous
+results. This is used by the <code>FulfillmentContext</code> to decide when it
+has reached a steady state.</li>
+</ul>
+<h4 id="snapshots" class="section-header"><a href="#snapshots">Snapshots</a></h4>
+<p>The <code>ObligationForest</code> supports a limited form of snapshots; see
+<code>start_snapshot</code>, <code>commit_snapshot</code>, and <code>rollback_snapshot</code>. In
+particular, you can use a snapshot to roll back new root
+obligations. However, it is an error to attempt to
+<code>process_obligations</code> during a snapshot.</p>
+<h3 id="implementation-details" class="section-header"><a href="#implementation-details">Implementation details</a></h3>
+<p>For the most part, comments specific to the implementation are in the
+code. This file only contains a very high-level overview. Basically,
+the forest is stored in a vector. Each element of the vector is a node
+in some tree. Each node in the vector has the index of an (optional)
+parent and (for convenience) its root (which may be itself). It also
+has a current state, described by <code>NodeState</code>. After each
+processing step, we compress the vector to remove completed and error
+nodes, which aren't needed anymore.</p>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table><tr class='module-item'><td><a class="struct" href="struct.Error.html" title='rustc_data_structures::obligation_forest::Error struct'>Error</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="struct" href="struct.ObligationForest.html" title='rustc_data_structures::obligation_forest::ObligationForest struct'>ObligationForest</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="struct" href="struct.Outcome.html" title='rustc_data_structures::obligation_forest::Outcome struct'>Outcome</a></td><td class='docblock-short'></td></tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table><tr class='module-item'><td><a class="enum" href="enum.DoCompleted.html" title='rustc_data_structures::obligation_forest::DoCompleted enum'>DoCompleted</a></td><td class='docblock-short'><p>Should <code>process_obligations</code> compute the <code>Outcome::completed</code> field of its
+result?</p>
+</td></tr><tr class='module-item'><td><a class="enum" href="enum.ProcessResult.html" title='rustc_data_structures::obligation_forest::ProcessResult enum'>ProcessResult</a></td><td class='docblock-short'><p>The result type used by <code>process_obligation</code>.</p>
+</td></tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
+<table><tr class='module-item'><td><a class="trait" href="trait.ForestObligation.html" title='rustc_data_structures::obligation_forest::ForestObligation trait'>ForestObligation</a></td><td class='docblock-short'></td></tr><tr class='module-item'><td><a class="trait" href="trait.ObligationProcessor.html" title='rustc_data_structures::obligation_forest::ObligationProcessor trait'>ObligationProcessor</a></td><td class='docblock-short'></td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g., <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g., <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g., <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "rustc_data_structures";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

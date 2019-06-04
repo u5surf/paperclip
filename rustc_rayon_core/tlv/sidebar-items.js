@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["get","Returns the current thread-local value"],["set","Sets the current thread-local value"],["with","Sets the current thread-local value to `value` inside the closure. The old value is restored when the closure ends"]]});
